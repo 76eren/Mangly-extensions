@@ -3,7 +3,6 @@ package com.example.manglyextension.plugins.testsource
 import com.example.manglyextension.plugins.IPreferences
 import com.example.manglyextension.plugins.PreferenceUi
 import com.example.manglyextension.plugins.Source
-import java.util.UUID
 
 // These can be used for things like web scraping, however this example wont use it
 import org.jsoup.Jsoup
@@ -12,12 +11,10 @@ import org.jsoup.select.Elements
 
 
 // This is a sample implementation of a source plugin for Mangly.
-class TestSource(val prefs: IPreferences) : Source(prefs) {
+class TestSource(prefs: IPreferences) : Source(prefs) {
 
-    // Every extensions must have a unique preference key.
-    // This is used as a key for the shared preferences in the main Mangly app.
-    companion object {
-        val preferenceKey: UUID = UUID.fromString("fb138f74-51da-4f5f-a0f3-5590f1bd5e4e")
+    override fun getExtensionId(): String {
+        return "fb138f74-51da-4f5f-a0f3-5590f1bd5e4e"
     }
 
     override fun getExtensionName(): String {
@@ -113,6 +110,12 @@ class TestSource(val prefs: IPreferences) : Source(prefs) {
 
         return ChapterImages(images, headers)
 
+    }
+
+    override suspend fun getMangaNameFromChapterUrl(chapterUrl: String): String {
+        // go to url logic and get name
+
+        return "Test Manga"
     }
 
 }
