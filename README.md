@@ -12,9 +12,9 @@ This project is currently in active development. Expect frequent updates, breaki
 
 ---
 
-## How to build
+## How to build module for each plugin
 ```bash
-.\gradlew build
+.\gradlew.bat :plugins:testsource:build
 ```
 
 This will generate a .mangly file, which then can be imported into the main App. 
