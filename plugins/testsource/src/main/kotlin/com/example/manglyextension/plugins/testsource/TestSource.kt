@@ -11,10 +11,10 @@ import org.jsoup.select.Elements
 
 
 // This is a sample implementation of a source plugin for Mangly.
-class TestSource(prefs: IPreferences) : Source(prefs) {
+class TestSource(prefs: IPreferences?) : Source(prefs) {
 
     override fun getExtensionId(): String {
-        return "fb138f74-51da-4f5f-a0f3-5590f1bd5e4e"
+        return "07e2919c-cda3-4642-9fe4-85dd354a647b"
     }
 
     override fun getExtensionName(): String {
@@ -23,26 +23,22 @@ class TestSource(prefs: IPreferences) : Source(prefs) {
 
     override fun generateSettings(): List<SettingGen> {
         val settingsList = mutableListOf<SettingGen>()
-        settingsList.add(
-            SettingGen(
-                key = "testBoolean",
-                defaultValue = false,
-                uiElement = PreferenceUi.SWITCH, // If the UI element is empty it wont be displayed but still be used internally to storage data in the shared preferences
-            )
-        )
 
         settingsList.add(
             SettingGen(
-                key = "testString",
+                key = "testsource_example_textarea",
                 defaultValue = "",
+                content = "",
+                description = "Example Text Area Setting",
                 uiElement = PreferenceUi.TEXTAREA,
             )
         )
 
         settingsList.add(
             SettingGen(
-                key = "testboolean2",
+                key = "testsource_example_switch",
                 defaultValue = true,
+                description = "Example Switch Setting",
                 uiElement = PreferenceUi.SWITCH,
             )
         )
