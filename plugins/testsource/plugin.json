@@ -1,5 +1,5 @@
 {
   "entryClass": "com.example.manglyextension.plugins.testsource.TestSource",
   "name": "TestSource",
-  "version": "1.0"
+  "version": "1.1"
 }
