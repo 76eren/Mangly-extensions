@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.manglyextension.plugins.testsource"
+    namespace = "com.example.manglyextension.plugins.weebcentral"
     compileSdk = 34
 
     compileOptions {
@@ -26,10 +26,13 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.21")
     implementation("org.jsoup:jsoup:1.21.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+
 }
 
 val d8OutputDir = layout.buildDirectory.dir("customDex")
 val extractedClassesJar = layout.buildDirectory.file("customDex/classes.jar")
+val mergedJarsDir = layout.buildDirectory.dir("mergedJars")
+val mergedJar = layout.buildDirectory.file("mergedJars/all-classes.jar")
 
 tasks.register<Copy>("extractClassesJar") {
     group = "build"
@@ -41,9 +44,55 @@ tasks.register<Copy>("extractClassesJar") {
     dependsOn("bundleReleaseAar")
 }
 
+tasks.register<Copy>("collectDependencyJars") {
+    group = "build"
+    description = "Collects all dependency JARs including plugin classes"
+
+    doFirst {
+        mergedJarsDir.get().asFile.mkdirs()
+    }
+
+    from(extractedClassesJar)
+
+    from(configurations.getByName("releaseRuntimeClasspath").files.filter {
+        it.extension == "jar" && !it.name.contains("android.jar")
+    })
+
+    into(mergedJarsDir.get().asFile)
+
+    dependsOn("extractClassesJar")
+}
+
+tasks.register("mergeAllJars") {
+    group = "build"
+    description = "Merges all JARs into a single JAR"
+
+    doLast {
+        val outputJar = mergedJar.get().asFile
+        outputJar.parentFile.mkdirs()
+
+        ant.withGroovyBuilder {
+            "jar"("destfile" to outputJar.absolutePath) {
+                mergedJarsDir.get().asFile.listFiles()?.forEach { jar ->
+                    if (jar.extension == "jar") {
+                        "zipfileset"("src" to jar.absolutePath) {
+                            "exclude"("name" to "META-INF/*.SF")
+                            "exclude"("name" to "META-INF/*.DSA")
+                            "exclude"("name" to "META-INF/*.RSA")
+                            "exclude"("name" to "META-INF/versions/**")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    dependsOn("collectDependencyJars")
+}
+
 tasks.register("d8Dex") {
     group = "build"
-    description = "Dexes the compiled classes using d8"
+    description = "Dexes all classes and dependencies using D8"
 
     doFirst {
         d8OutputDir.get().asFile.mkdirs()
@@ -52,12 +101,13 @@ tasks.register("d8Dex") {
     doLast {
         D8.run(
             D8Command.builder()
-                .addProgramFiles(extractedClassesJar.get().asFile.toPath())
+                .addProgramFiles(mergedJar.get().asFile.toPath())
                 .setOutput(d8OutputDir.get().asFile.toPath(), OutputMode.DexIndexed)
+                .setMinApiLevel(21) // Set minimum API level
                 .build())
     }
 
-    dependsOn("extractClassesJar")
+    dependsOn("mergeAllJars")
 }
 
 tasks.register("buildPluginZip", Zip::class) {
